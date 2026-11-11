@@ -10,10 +10,12 @@ python3 -m http.server 8000   # ardından http://localhost:8000
 
 ## Akış
 
+Link ilk açıldığında hazır bir demo hesabıyla **doğrudan panel** gelir. Tanıtım ve kayıt akışı isteğe bağlıdır: hesap menüsündeki "Tanıtım sayfası" ya da "Çıkış yap" ile açılır.
+
 1. **Tanıtım** (`#/hosgeldin`) — özellikler, nasıl çalışır, yorumlar, fiyatlandırma, SSS. "Demoyu gez" hazır bir hesapla doğrudan panele girer.
 2. **Giriş / kayıt** (`#/giris`) — form doğrulama, Google ile devam (demo), KVKK onayı.
 3. **İlk kurulum** (`#/baslangic`) — sınıf, alan, hedef, zorlanılan dersler + günlük süre, yapay zekâ tercihi; sonunda kişiye özel ilk haftalık plan oluşturulur.
-4. Giriş yapmadan uygulama sayfalarına gidilemez; çıkış yapınca tarayıcıdaki demo verisi temizlenir.
+4. Çıkış yaptıktan sonra uygulama sayfaları tanıtıma yönlenir ve otomatik giriş tekrar yapılmaz; çıkış, tarayıcıdaki demo verisini temizler.
 
 ## Ekranlar
 

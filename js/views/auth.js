@@ -4,7 +4,7 @@
 
   const brand = `<a href="#/hosgeldin" class="brand"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect x="3.5" y="6.5" width="25" height="17" rx="2" fill="none" stroke="currentColor"/><path d="M8 12h9M8 16h13" stroke="currentColor" stroke-linecap="round"/><path d="M11 23.5 9 28M21 23.5l2 4.5" stroke="currentColor" stroke-linecap="round"/><circle cx="24" cy="12" r="1.6" fill="var(--accent)"/></svg><span>Derslik</span></a>`;
 
-  const demoUser = () => ({ name: "Elif Kaya", email: "elif@ornek.com", grade: "11. sınıf", track: "Sayısal", target: DB.targets[0], daily: 90, weak: ["matematik", "fizik"], provider: "mock", tone: "samimi" });
+  const demoUser = () => session.demo();
 
   /* ---------------- Tanıtım ---------------- */
   function landing(view) {
@@ -27,7 +27,7 @@
         <nav class="lp-nav">
           ${brand}
           <div class="lp-links"><a href="#ozellikler" data-scroll>Özellikler</a><a href="#nasil" data-scroll>Nasıl çalışır</a><a href="#okullar" data-scroll>Okullar için</a><a href="#sss" data-scroll>SSS</a></div>
-          <div class="row-l"><a class="btn ghost sm" href="#/giris">Giriş yap</a><a class="btn sm" href="#/giris?k=1">Ücretsiz başla</a></div>
+          <div class="row-l">${session.user() ? `<a class="btn sm" href="#/">Uygulamaya dön ${icon("arrow")}</a>` : `<a class="btn ghost sm" href="#/giris">Giriş yap</a><a class="btn sm" href="#/giris?k=1">Ücretsiz başla</a>`}</div>
         </nav>
 
         <header class="lp-hero">

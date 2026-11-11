@@ -40,6 +40,11 @@
       location.reload();
     },
   };
+  /* İlk ziyarette doğrudan uygulamaya: hazır demo hesabı açılır.
+     Çıkış yapıldıktan sonra tekrar otomatik giriş yapılmaz. */
+  session.demo = () => ({ name: "Elif Kaya", email: "elif@ornek.com", grade: "11. sınıf", track: "Sayısal", target: DB.targets[0], daily: 90, weak: ["matematik", "fizik"], provider: "mock", tone: "samimi" });
+  if (!session.user() && !store.get("seen", false)) store.set("user", session.demo());
+  store.set("seen", true);
   session.apply();
 
   /* ---------- Tema ---------- */
@@ -171,7 +176,6 @@
       closeSheet();
       let key = parts[0] || "panel";
       if (!session.user() && !PUBLIC.includes(key)) { location.replace("#/hosgeldin"); return; }
-      if (session.user() && key === "hosgeldin") { location.replace("#/"); return; }
       const r = routes[key] || routes["404"];
       document.body.classList.toggle("bare", PUBLIC.includes(key));
       if (!shellBuilt && !PUBLIC.includes(key)) buildShell();
@@ -281,6 +285,7 @@
         <div class="pm-head">${avatar("elif", 36)}<span><b>${DB.student.fullName}</b><small>${esc(DB.student.email || "elif@ornek.com")}</small></span></div>
         <a href="#/profil">${icon("user")} Profil</a>
         <a href="#/ayarlar">${icon("gear")} Ayarlar</a>
+        <a href="#/hosgeldin">${icon("spark")} Tanıtım sayfası</a>
         <button id="logout">${icon("exit")} Çıkış yap</button>
       </div>`;
     $("#avBtn").onclick = (e) => { e.stopPropagation(); $("#avMenu").hidden = !$("#avMenu").hidden; };
