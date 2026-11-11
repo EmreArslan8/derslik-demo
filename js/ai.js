@@ -110,7 +110,14 @@
 
   async function chat({ messages, mode = "acikla", context, onToken }) {
     if (config.provider !== "mock" && config.proxyUrl) return remote({ messages, mode, context, onToken });
-    const last = messages[messages.length - 1]?.text || "";
+    const lastMsg = messages[messages.length - 1] || {};
+    const last = lastMsg.text || "";
+    if (lastMsg.image) {
+      await sleep(900);
+      const a = "Görselde el yazısıyla bir türev sorusu görüyorum: f(x) = (x² + 3x)⁴ için f′(1) isteniyor.\n\n1. Dış fonksiyon u⁴, iç fonksiyon x² + 3x.\n2. f′(x) = 4(x² + 3x)³ · (2x + 3)\n3. x = 1 → 4 · 64 · 5 = 1280\n\nAdım adım ve şıklarla görmek istersen **Soru Çöz** ekranını kullanabilirsin.";
+      await typeOut(a, onToken);
+      return a;
+    }
     await sleep(420 + Math.random() * 300);
     const answer = mockAnswer(last, mode, context);
     await typeOut(answer, onToken);
@@ -118,14 +125,74 @@
   }
 
   /* Quiz üretimi: demo modunda soru havuzundan karıştırarak seçer */
+  const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
   async function generateQuiz({ course, count }) {
     await sleep(900);
-    const pool = [...(DB.bank[course] || DB.bank.matematik)];
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
+    return shuffle(DB.bank[course] || DB.bank.matematik).slice(0, count);
+  }
+
+  /* Fotoğraftan soru çözme: demo modunda örnek soruyu "tanır" */
+  async function solve({ sampleId }) {
+    await sleep(1600);
+    return DB.solveSamples.find((s) => s.id === sampleId) || DB.solveSamples[0];
+  }
+
+  /* Konu notundan kart üretimi */
+  const GEN_CARDS = {
+    matematik: [
+      { f: "(cos x)′ = ?", b: "−sin x" },
+      { f: "(tan x)′ = ?", b: "1 + tan²x  (= 1 / cos²x)" },
+      { f: "|x| fonksiyonu x = 0'da türevlenebilir mi?", b: "Hayır — sürekli ama sivri nokta var" },
+    ],
+    fizik: [
+      { f: "Yükler arası uzaklık yarıya inerse kuvvet?", b: "4 katına çıkar" },
+      { f: "Alan çizgileri birbirini keser mi?", b: "Hayır, hiçbir zaman" },
+    ],
+    kimya: [
+      { f: "Seyreltmede değişmeyen nicelik", b: "Çözünenin mol sayısı" },
+      { f: "1 L = ? mL", b: "1000 mL" },
+    ],
+    edebiyat: [
+      { f: "Servet-i Fünun'un dağılma nedeni", b: "1901'de dergide çıkan bir çeviri yazı nedeniyle kapatılması" },
+      { f: "Aşk-ı Memnu'nun yazarı", b: "Halit Ziya Uşaklıgil" },
+    ],
+  };
+  async function generateCards({ course }) {
+    await sleep(1300);
+    return GEN_CARDS[course] || GEN_CARDS.matematik;
+  }
+
+  /* Haftalık plan üretimi: zayıf konular + günlük süreye göre */
+  async function generatePlan({ hours, focus, weekendOff }) {
+    await sleep(1400);
+    const pick = focus.length ? focus : ["matematik", "fizik", "kimya"];
+    const tasks = {
+      matematik: ["Zincir kuralı — tekrar", "Türev quiz (10 soru)", "Türevin uygulamaları — video", "Deneme yanlış analizi", "İntegral giriş"],
+      fizik: ["Elektrik alan çizgileri", "Coulomb — 20 soru", "Potansiyel — video", "Sığaçlar soru çözümü"],
+      kimya: ["Seyreltme problemleri", "Derişim birimleri kartları", "Tepkime hızları — video"],
+      biyoloji: ["Endokrin sistem — not", "Dolaşım sistemi — video", "Hormon kartları"],
+      edebiyat: ["Servet-i Fünun kartları", "Millî edebiyat okuma"],
+      tarih: ["Sanayi devrimi — video", "Uluslararası ilişkiler — not"],
+    };
+    const perDay = Math.max(1, Math.round(hours * 60 / 45));
+    const out = [];
+    const used = {};
+    for (let d = 0; d < 7; d++) {
+      if (weekendOff && d === 6) continue;
+      if (d === 5) { out.push({ day: 5, start: "10:00", mins: 120, course: "matematik", title: "TYT deneme sınavı", done: false, exam: true }); }
+      let t = d >= 5 ? 14 * 60 : 16 * 60 + 30;
+      const n = d === 5 ? Math.max(1, perDay - 2) : perDay;
+      for (let i = 0; i < n; i++) {
+        const c = pick[(d + i) % pick.length];
+        const list = tasks[c];
+        const k = (used[c] = (used[c] ?? -1) + 1) % list.length;
+        const mins = [40, 45, 50, 30][(d + i) % 4];
+        out.push({ day: d, start: String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"), mins, course: c, title: list[k], done: false });
+        t += mins + 10;
+      }
     }
-    return pool.slice(0, Math.min(count, pool.length));
+    return out;
   }
 
   function setProvider(id) {
@@ -133,5 +200,5 @@
     try { localStorage.setItem("derslik.provider", id); } catch (_) {}
   }
 
-  window.AI = { config, chat, generateQuiz, setProvider, isLive: () => config.provider !== "mock" && !!config.proxyUrl };
+  window.AI = { config, chat, generateQuiz, generateCards, generatePlan, solve, setProvider, isLive: () => config.provider !== "mock" && !!config.proxyUrl };
 })();
