@@ -349,6 +349,54 @@ window.DB = {
     { who: "selin", text: "Deneme 6 sonuçların açıklandı.", when: "Dün", unread: false },
   ],
 
+  assignments: [
+    {
+      id: "a1", course: "matematik", teacher: "murat", title: "Türev kuralları — 12 soruluk ödev", due: "2026-11-13T23:59", status: "bekliyor",
+      desc: "Ders kitabı s. 84–86'daki 12 soruyu çöz. Her sorunun çözüm adımlarını göster; yalnızca cevap yazılan sorular yarım puan alır.",
+      files: ["turev-odev.pdf"], points: 100,
+      rubric: ["Doğru kural seçimi", "Adımların gösterilmesi", "Sonucun sadeleştirilmesi"],
+    },
+    {
+      id: "a2", course: "fizik", teacher: "selin", title: "Sığaçlar — kavram haritası", due: "2026-11-12T17:00", status: "bekliyor",
+      desc: "Sığa, yük, potansiyel farkı ve enerji kavramlarını bir kavram haritasında ilişkilendir. El çizimi fotoğrafı yeterli.",
+      files: [], points: 50, rubric: ["Kavramların doğru bağlanması", "Formüllerin yer alması"],
+    },
+    {
+      id: "a3", course: "edebiyat", teacher: "ayse", title: "Servet-i Fünun okuma notu", due: "2026-11-14T23:59", status: "bekliyor",
+      desc: "Mai ve Siyah'tan seçtiğin bir bölüm üzerine 250–300 kelimelik okuma notu yaz. Dönemin sanat anlayışıyla ilişkilendir.",
+      files: [], points: 100, rubric: ["Dönem özellikleriyle ilişki", "Yazım ve anlatım", "Özgün yorum"],
+    },
+    {
+      id: "a4", course: "kimya", teacher: "can", title: "Molarite çalışma kâğıdı", due: "2026-11-07T23:59", status: "notlandı", grade: 88, submitted: "6 Kas",
+      desc: "Çalışma kâğıdındaki 15 soruyu çöz.", files: ["molarite.pdf"], points: 100, rubric: [],
+      feedback: "Seyreltme sorularında hacim birimini doğru çevirmişsin. 11. soruda kütlece yüzdeyi molariteyle karıştırmışsın; tekrar et.",
+    },
+    {
+      id: "a5", course: "biyoloji", teacher: "deniz", title: "Sinir sistemi şeması", due: "2026-11-05T23:59", status: "teslim edildi", submitted: "4 Kas",
+      desc: "Merkezi ve çevresel sinir sistemini gösteren bir şema hazırla.", files: [], points: 50, rubric: [],
+    },
+  ],
+
+  achievements: [
+    { id: "seri7", name: "Bir hafta", desc: "7 gün üst üste çalış", got: true, icon: "flame" },
+    { id: "kart100", name: "Kart ustası", desc: "100 kart tekrar et", got: true, icon: "cards" },
+    { id: "quiz10", name: "Quiz serisi", desc: "10 quiz'i %75 üzeri bitir", got: true, icon: "quiz" },
+    { id: "gece", name: "Gece kuşu", desc: "22:00 sonrası 5 odak oturumu", got: false, p: 0.6, icon: "moon" },
+    { id: "seri30", name: "Bir ay", desc: "30 gün üst üste çalış", got: false, p: 0.4, icon: "flame" },
+    { id: "net100", name: "Üç haneli", desc: "TYT'de 100 net yap", got: false, p: 0.91, icon: "chart" },
+  ],
+
+  leaderboard: [
+    { who: "zeynep", xp: 5120, school: "Kadıköy AL" },
+    { who: "ege", xp: 4890, school: "Kadıköy AL" },
+    { who: "elif", xp: 4280, school: "Kadıköy AL", me: true },
+    { who: "kaan", xp: 4105, school: "Kadıköy AL" },
+    { who: "ada", xp: 3770, school: "Kadıköy AL" },
+    { who: "mert", xp: 3410, school: "Kadıköy AL" },
+  ],
+
+  targets: ["Boğaziçi · Bilgisayar Müh.", "ODTÜ · Elektrik-Elektronik Müh.", "İTÜ · Endüstri Müh.", "Hacettepe · Tıp", "Koç · Moleküler Biyoloji", "Henüz karar vermedim"],
+
   providers: [
     { id: "mock", name: "Demo (çevrimdışı)", note: "Yerel örnek yanıtlar" },
     { id: "gemini", name: "Gemini", note: "Google AI Studio anahtarı gerekir" },

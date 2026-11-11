@@ -8,13 +8,23 @@
 python3 -m http.server 8000   # ardından http://localhost:8000
 ```
 
+## Akış
+
+1. **Tanıtım** (`#/hosgeldin`) — özellikler, nasıl çalışır, yorumlar, fiyatlandırma, SSS. "Demoyu gez" hazır bir hesapla doğrudan panele girer.
+2. **Giriş / kayıt** (`#/giris`) — form doğrulama, Google ile devam (demo), KVKK onayı.
+3. **İlk kurulum** (`#/baslangic`) — sınıf, alan, hedef, zorlanılan dersler + günlük süre, yapay zekâ tercihi; sonunda kişiye özel ilk haftalık plan oluşturulur.
+4. Giriş yapmadan uygulama sayfalarına gidilemez; çıkış yapınca tarayıcıdaki demo verisi temizlenir.
+
 ## Ekranlar
 
 | Ekran | İçerik |
 |---|---|
+| **Ödevler** | Bekleyen / teslim edilen / notlanan sekmeleri, kalan süre, ödev detayı, dosya yükleme, otomatik kaydedilen taslak, ölçütlere göre yapay zekâ ön kontrolü, teslim ve geri alma, öğretmen geri bildirimi |
+| **Profil** | Seviye/XP, seri, 6 aylık çalışma takvimi, sınıf sıralaması, başarımlar, son etkinlikler |
+| **Ayarlar** | Hesap, çalışma hedefi, yapay zekâ sağlayıcısı + anlatım tarzı + proxy adresi ve bağlantı testi, bildirimler, tema, veri indirme / sıfırlama / hesap silme |
 | **Panel** | Kaldığın video, pomodoro odak sayacı, haftalık çalışma grafiği, bugünün planı, günün sorusu, tekrar bekleyen kartlar, zayıf konular, canlı çalışma odaları |
 | **Dersler** | Kapak görselli ders kartları, filtre, video şeridi |
-| **Ders detayı** | Video oynatıcı (bölümler, eşzamanlı döküm, altyazı, hız), yapay zekâ video özeti, ders notu (metin seç → asistana sor), konu asistanı |
+| **Ders detayı** | Konu listesinden konu değiştirme, "Konuyu tamamladım" ile ilerleme, video oynatıcı (bölümler, eşzamanlı döküm, altyazı, hız), yapay zekâ video özeti, ders notu (metin seç → asistana sor), konu asistanı |
 | **Asistan** | Açıkla / Sorularla / Özetle modları, görsel ekleme, sohbet geçmişi, kopyala · yeniden üret · karta dönüştür, takip önerileri |
 | **Soru Çöz** | Fotoğraf yükle / sürükle-bırak (mobilde kamera), tarama animasyonu, önce tahmin et, adım adım çözüm, tuzak şık uyarısı |
 | **Kartlar** | Aralıklı tekrar (basit SM-2), 3B çevirme, klavye kısayolları, yapay zekâ ile kart ekleme; ilerleme tarayıcıda saklanır |
@@ -23,7 +33,7 @@ python3 -m http.server 8000   # ardından http://localhost:8000
 | **Analiz** | TYT/AYT net gelişimi (hover ipucu + tablo görünümü), ders bazında son deneme, konu hâkimiyeti ısı haritası, yorum |
 | **Çalışma odaları** | Canlı odalar, ortak pomodoro, katılımcılar, oda sohbeti |
 
-Genel: ⌘K / Ctrl+K komut paleti, açık/koyu tema, bildirimler, mobilde alt sekme çubuğu ve menü.
+Genel: ⌘K / Ctrl+K komut paleti, açık/koyu tema, bildirimler, hesap menüsü, 404 sayfası, mobilde alt sekme çubuğu ve menü. İlerleme (plan, kartlar, teslimler, tamamlanan konular, ayarlar) tarayıcıda `localStorage` ile saklanır.
 
 ## Yapay zekâ katmanı
 

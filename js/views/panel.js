@@ -117,6 +117,14 @@
           </div>
         </a>
 
+        <div class="glass card hw-mini">
+          <div class="card-top"><h3>Yaklaşan ödevler</h3><a class="mono muted link" href="#/odevler">tümü →</a></div>
+          <ul class="rows">
+            ${DB.assignments.filter((a) => a.status === "bekliyor" && !store.get("subs", {})[a.id]).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3).map((a) => { const ac = course(a.course); const h = Math.floor((new Date(a.due) - new Date()) / 36e5); return `
+              <li><span class="dotc" style="--c:${hue(ac)}"></span><a class="grow" href="#/odev/${a.id}"><b>${a.title}</b><small>${ac.short || ac.name} · ${person(a.teacher).name}</small></a><span class="due-chip ${h < 48 ? "soon" : ""}">${h < 0 ? "geçti" : h < 24 ? h + " sa" : Math.floor(h / 24) + " gün"}</span></li>`; }).join("") || `<li class="muted">Bekleyen ödevin yok.</li>`}
+          </ul>
+        </div>
+
         <div class="glass card courses-mini">
           <div class="card-top"><h3>Dersler</h3><a class="mono muted link" href="#/dersler">tümü →</a></div>
           <ul class="rings">

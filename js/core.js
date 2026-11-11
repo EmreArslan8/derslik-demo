@@ -14,6 +14,34 @@
     set(k, v) { try { localStorage.setItem("derslik." + k, JSON.stringify(v)); } catch (_) {} },
   };
 
+  /* ---------- Oturum / kullanıcı ---------- */
+  const PUBLIC = ["hosgeldin", "giris", "baslangic"];
+  const session = {
+    user() { return store.get("user", null); },
+    save(u) { store.set("user", u); session.apply(); },
+    apply() {
+      const u = session.user();
+      if (!u) return;
+      const s = DB.student;
+      s.name = u.name.split(" ")[0];
+      s.fullName = u.name;
+      s.grade = u.grade;
+      s.track = u.track;
+      s.goalMinutes = u.daily || s.goalMinutes;
+      s.target = u.target;
+      s.email = u.email;
+      DB.people.elif.name = u.name;
+      if (u.avatar === false) { delete DB.people.elif.av; DB.people.elif.initials = u.name.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase(); }
+      if (u.provider) AI.setProvider(u.provider);
+    },
+    logout() {
+      ["user", "plan", "cards", "extraCards", "sessions", "subs", "done"].forEach((k) => { try { localStorage.removeItem("derslik." + k); } catch (_) {} });
+      location.hash = "#/hosgeldin";
+      location.reload();
+    },
+  };
+  session.apply();
+
   /* ---------- Tema ---------- */
   const theme = {
     get() { return document.documentElement.dataset.theme || "light"; },
@@ -30,6 +58,7 @@
     },
   };
   theme.init();
+  if (store.get("still", false)) document.documentElement.classList.add("still");
   const hue = (c) => (theme.get() === "dark" ? c.hueDark : c.hue);
 
   /* ---------- Görseller ---------- */
@@ -79,6 +108,13 @@
     volume: '<path d="M5 9.5h3l4.5-4v13l-4.5-4H5z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>',
     mic: '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/>',
     cam: '<rect x="3.5" y="6.5" width="12" height="11" rx="2"/><path d="m15.5 10.5 5-3v9l-5-3"/>',
+    task: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 11l2 2 4-4M8.5 16.5h7"/>',
+    user: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.8 3.9-5.8 7.5-5.8s6.6 2 7.5 5.8"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/>',
+    google: '<path d="M20 12.2c0-.6-.1-1.2-.2-1.7H12v3.3h4.5a3.9 3.9 0 0 1-1.7 2.5v2h2.7c1.6-1.4 2.5-3.6 2.5-6.1z"/><path d="M12 20.5c2.3 0 4.2-.8 5.5-2.1l-2.7-2.1c-.7.5-1.7.8-2.8.8a4.9 4.9 0 0 1-4.6-3.4H4.6v2.1A8.5 8.5 0 0 0 12 20.5z"/><path d="M7.4 13.7a5 5 0 0 1 0-3.2V8.4H4.6a8.5 8.5 0 0 0 0 7.6z"/><path d="M12 6.9c1.3 0 2.4.4 3.3 1.3l2.4-2.4A8.4 8.4 0 0 0 4.6 8.4l2.8 2.1A4.9 4.9 0 0 1 12 6.9z"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+    file: '<path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14 3.5V8h4"/>',
+    trophy: '<path d="M8 4.5h8v5a4 4 0 0 1-8 0z"/><path d="M8 6.5H5.5a2.5 2.5 0 0 0 2.6 3.6M16 6.5h2.5a2.5 2.5 0 0 1-2.6 3.6M12 13.5v3.5M8.5 20.5h7M9.5 20.5l.5-3.5h4l.5 3.5"/>',
     exit: '<path d="M14 4.5h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4M10 16.5l-4.5-4.5L10 7.5M5.5 12H15"/>',
   };
   const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
@@ -133,10 +169,16 @@
       cleanup.forEach((f) => f()); cleanup = [];
       $(".ask-sel")?.remove();
       closeSheet();
-      const r = routes[parts[0] || "panel"] || routes.panel;
+      let key = parts[0] || "panel";
+      if (!session.user() && !PUBLIC.includes(key)) { location.replace("#/hosgeldin"); return; }
+      if (session.user() && key === "hosgeldin") { location.replace("#/"); return; }
+      const r = routes[key] || routes["404"];
+      document.body.classList.toggle("bare", PUBLIC.includes(key));
+      if (!shellBuilt && !PUBLIC.includes(key)) buildShell();
       $$("[data-nav]").forEach((a) => a.classList.toggle("on", a.dataset.nav === r.nav));
-      document.body.dataset.route = parts[0] || "panel";
+      document.body.dataset.route = key;
       r.fn(view, params, parts.slice(1));
+      if (shellBuilt) refreshBadges();
       if (!keepScroll) {
         view.classList.remove("enter"); void view.offsetWidth; view.classList.add("enter");
         window.scrollTo(0, 0);
@@ -149,6 +191,7 @@
   const NAV = [
     { href: "#/", label: "Panel", icon: "panel", nav: "panel", group: "Çalış" },
     { href: "#/dersler", label: "Dersler", icon: "book", nav: "dersler", group: "Çalış" },
+    { href: "#/odevler", label: "Ödevler", icon: "task", nav: "odevler", group: "Çalış" },
     { href: "#/plan", label: "Plan", icon: "plan", nav: "plan", group: "Çalış" },
     { href: "#/asistan", label: "Asistan", icon: "chat", nav: "asistan", group: "Yapay zekâ" },
     { href: "#/coz", label: "Soru Çöz", icon: "camera", nav: "coz", group: "Yapay zekâ" },
@@ -168,6 +211,9 @@
       ]),
       ...DB.decks.map((d) => ({ label: d.name, sub: "Kart destesi", href: `#/kartlar/${d.id}`, icon: "cards" })),
       ...DB.rooms.map((r) => ({ label: r.name, sub: "Çalışma odası", href: `#/oda/${r.id}`, icon: "rooms" })),
+      ...DB.assignments.map((a) => ({ label: a.title, sub: "Ödev", href: `#/odev/${a.id}`, icon: "task" })),
+      { label: "Profil", sub: "Sayfa", href: "#/profil", icon: "user" },
+      { label: "Ayarlar", sub: "Sayfa", href: "#/ayarlar", icon: "gear" },
       { label: "Temayı değiştir", sub: "Komut", run: () => theme.toggle(), icon: "moon" },
       { label: "25 dk odak başlat", sub: "Komut", run: () => { Focus.set(25); Focus.start(); toast("Odak sayacı başladı."); }, icon: "timer" },
     ];
@@ -207,21 +253,38 @@
   function closeSheet() { const s = $("#sheet"); if (s) s.hidden = true; }
 
   /* ---------- Kabuk ---------- */
+  let shellBuilt = false;
+  function refreshBadges() {
+    const vals = { kartlar: UI.dueCards(), odevler: DB.assignments.filter((a) => a.status === "bekliyor" && !store.get("subs", {})[a.id]).length };
+    $$("[data-badge]").forEach((b) => { const v = vals[b.dataset.badge]; b.textContent = v; b.hidden = !v; });
+  }
   function buildShell() {
+    if (shellBuilt) return;
+    shellBuilt = true;
     const groups = [...new Set(NAV.map((n) => n.group))];
     $("#railNav").innerHTML = groups.map((g) => `
       <p class="nav-g mono">${g}</p>
-      ${NAV.filter((n) => n.group === g).map((n) => `<a href="${n.href}" data-nav="${n.nav}">${icon(n.icon)}<span>${n.label}</span>${n.nav === "kartlar" ? `<em class="badge">${UI.dueCards()}</em>` : ""}</a>`).join("")}`).join("");
+      ${NAV.filter((n) => n.group === g).map((n) => `<a href="${n.href}" data-nav="${n.nav}">${icon(n.icon)}<span>${n.label}</span>${["kartlar", "odevler"].includes(n.nav) ? `<em class="badge ${n.nav === "odevler" ? "alt" : ""}" data-badge="${n.nav}"></em>` : ""}</a>`).join("")}`).join("");
 
+    const nav = (k) => NAV.find((n) => n.nav === k);
     $("#tabbar").innerHTML = [
-      NAV[0], NAV[1], { href: "#/coz", label: "Çöz", icon: "camera", nav: "coz", center: true }, NAV[3],
+      nav("panel"), nav("dersler"), { href: "#/coz", label: "Çöz", icon: "camera", nav: "coz", center: true }, nav("asistan"),
     ].map((n) => `<a href="${n.href}" data-nav="${n.nav}" class="${n.center ? "center" : ""}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
       `<button id="moreBtn">${icon("menu")}<span>Menü</span></button>`;
 
-    $("#sheet .sheet-grid").innerHTML = NAV.map((n) => `<a href="${n.href}" data-nav="${n.nav}">${icon(n.icon)}<span>${n.label}</span></a>`).join("");
+    $("#sheet .sheet-grid").innerHTML = [...NAV, { href: "#/profil", label: "Profil", icon: "user", nav: "profil" }, { href: "#/ayarlar", label: "Ayarlar", icon: "gear", nav: "ayarlar" }].map((n) => `<a href="${n.href}" data-nav="${n.nav}">${icon(n.icon)}<span>${n.label}</span></a>`).join("");
 
     $("#meCard").innerHTML = `${avatar("elif", 34)}<span><b>${DB.student.fullName}</b><small>${DB.student.grade} · ${DB.student.track}</small></span>`;
-    $("#topAv").innerHTML = avatar("elif", 34);
+    $("#meCard").onclick = () => (location.hash = "#/profil");
+    $("#topAv").innerHTML = `<button class="av-btn" id="avBtn" aria-label="Hesap menüsü">${avatar("elif", 34)}</button>
+      <div class="glass pop pop-s" id="avMenu" hidden>
+        <div class="pm-head">${avatar("elif", 36)}<span><b>${DB.student.fullName}</b><small>${esc(DB.student.email || "elif@ornek.com")}</small></span></div>
+        <a href="#/profil">${icon("user")} Profil</a>
+        <a href="#/ayarlar">${icon("gear")} Ayarlar</a>
+        <button id="logout">${icon("exit")} Çıkış yap</button>
+      </div>`;
+    $("#avBtn").onclick = (e) => { e.stopPropagation(); $("#avMenu").hidden = !$("#avMenu").hidden; };
+    $("#logout").onclick = () => session.logout();
 
     const unread = DB.notifications.filter((n) => n.unread).length;
     $("#bellBtn").innerHTML = icon("bell") + (unread ? `<i class="dot"></i>` : "");
@@ -235,6 +298,7 @@
     $("#bellBtn").onclick = (e) => { e.stopPropagation(); $("#notifs").hidden = !$("#notifs").hidden; };
     document.addEventListener("click", (e) => {
       if (!e.target.closest("#notifs")) $("#notifs").hidden = true;
+      if (!e.target.closest("#avMenu") || e.target.closest("a")) $("#avMenu") && ($("#avMenu").hidden = true);
       if (e.target.id === "readAll") { $$(".notif.unread").forEach((n) => n.classList.remove("unread")); $("#bellBtn .dot")?.remove(); }
     });
     $("#palette").addEventListener("click", (e) => { if (e.target.id === "palette") closePalette(); });
@@ -274,5 +338,5 @@
       .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
       .join("");
 
-  window.UI = { $, $$, esc, pct, sleep, course, person, store, theme, hue, img, avatar, stack, icon, toast, Focus, Router, ring, tag, fmtSecs, md, buildShell, openPalette };
+  window.UI = { session, PUBLIC, $, $$, esc, pct, sleep, course, person, store, theme, hue, img, avatar, stack, icon, toast, Focus, Router, ring, tag, fmtSecs, md, buildShell, openPalette };
 })();

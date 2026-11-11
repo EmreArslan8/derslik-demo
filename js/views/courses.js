@@ -50,9 +50,12 @@
   function detail(view, params, [id]) {
     const c = course(id);
     if (!c) return list(view);
-    const cur = c.topics.find((t) => t.current) || c.topics[0];
+    const doneSet = UI.store.get("done", {});
+    const isDone = (t) => t.done || doneSet[t.id];
+    const cur = c.topics.find((t) => t.id === params.get("t")) || c.topics.find((t) => t.current) || c.topics[0];
     const note = DB.notes[cur.id];
-    const video = DB.videos.find((v) => v.course === c.id && v.topic === cur.id) || DB.videos.find((v) => v.course === c.id);
+    const video = DB.videos.find((v) => v.course === c.id && v.topic === cur.id);
+    const prog = c.topics.filter(isDone).length / c.topics.length;
     const deck = DB.decks.find((d) => d.course === c.id);
     let tab = params.get("v") || !note ? "video" : "not";
     if (!video) tab = "not";
@@ -63,7 +66,7 @@
         <div class="c-hero-in">
           <p class="eyebrow mono"><a href="#/dersler">dersler</a> / ${c.name.toLocaleLowerCase("tr")}</p>
           <h1>${cur.name}</h1>
-          <div class="row-l">${avatar(c.teacher, 28)}<span>${person(c.teacher).name}</span><span class="dotsep"></span><span class="mono">${c.code}</span><span class="dotsep"></span><span class="mono">${pct(c.progress)}% tamamlandı</span></div>
+          <div class="row-l">${avatar(c.teacher, 28)}<span>${person(c.teacher).name}</span><span class="dotsep"></span><span class="mono">${c.code}</span><span class="dotsep"></span><span class="mono">${c.topics.filter(isDone).length}/${c.topics.length} konu tamamlandı</span></div>
         </div>
         <div class="c-hero-act">
           <a class="btn light" href="#/quiz?c=${c.id}">Quiz çöz</a>
@@ -75,14 +78,16 @@
         <nav class="glass card outline" aria-label="Konular">
           <p class="mono muted">Ünite · ${c.topics.length} konu</p>
           <ol>
-            ${c.topics.map((t, i) => `<li class="${t.done ? "done" : ""} ${t.current ? "now" : ""}"><span class="n mono">${t.done ? "✓" : String(i + 1).padStart(2, "0")}</span><span>${t.name}</span><small class="mono">${t.mins} dk</small></li>`).join("")}
+            ${c.topics.map((t, i) => `<li class="${isDone(t) ? "done" : ""} ${t === cur ? "now" : ""}"><a href="#/ders/${c.id}?t=${t.id}"><span class="n mono">${isDone(t) ? "✓" : String(i + 1).padStart(2, "0")}</span><span>${t.name}</span><small class="mono">${t.mins} dk${DB.videos.some((v) => v.topic === t.id) ? " · video" : ""}</small></a></li>`).join("")}
           </ol>
+          <div class="ol-prog"><span class="bar"><i style="width:${prog * 100}%"></i></span><span class="mono muted">${pct(prog)}%</span></div>
         </nav>
 
         <div class="lesson-main">
           <div class="tabs">
             ${video ? `<button data-t="video" class="${tab === "video" ? "on" : ""}">${icon("play")} Video</button>` : ""}
             <button data-t="not" class="${tab === "not" ? "on" : ""}">${icon("book")} Ders notu</button>
+            <button class="mini done-btn ${isDone(cur) ? "is" : ""}" id="doneBtn">${icon("check")} ${isDone(cur) ? "Tamamlandı" : "Konuyu tamamladım"}</button>
           </div>
           <div id="tabBody"></div>
         </div>
@@ -116,6 +121,17 @@
     $$(".tabs button", view).forEach((b) => (b.onclick = () => show(b.dataset.t)));
     Router.onLeave(() => stopVideo());
     show(tab);
+    $("#doneBtn").onclick = () => {
+      const d = UI.store.get("done", {});
+      if (cur.done) return UI.toast("Bu konu zaten tamamlanmış.");
+      d[cur.id] = !d[cur.id];
+      UI.store.set("done", d);
+      if (d[cur.id]) {
+        const next = c.topics[c.topics.indexOf(cur) + 1];
+        UI.toast(`“${cur.name}” tamamlandı · +30 XP`, next ? { href: `#/ders/${c.id}?t=${next.id}`, label: "Sonraki konu" } : null);
+      }
+      Router.refresh();
+    };
   }
 
   function renderNote(body, note, c, chat) {
@@ -129,9 +145,10 @@
             ${b.list ? `<ul class="rules">${b.list.map((x) => `<li class="mono">${x}</li>`).join("")}</ul>` : ""}
           </section>`).join("")}
         <div class="note-foot"><span class="muted">Bir yeri anlamadın mı? Metni seç, asistana gönder.</span></div>`
-      : `<p class="lead">Bu konunun ders notu demo kapsamında hazırlanmadı.</p><p class="muted">Matematik → Türev, Fizik → Elektriksel kuvvet veya Kimya → Çözeltiler konularında dolu bir örnek var.</p>`}
+      : `<div class="note-empty"><span class="drop-ic">${icon("book")}</span><p class="lead">Bu konunun notu öğretmenin tarafından henüz yüklenmedi.</p><p class="muted">Asistandan konunun sınav odaklı bir özetini çıkarmasını isteyebilir ya da dolu örneklere bakabilirsin: Matematik → Türev, Fizik → Elektriksel kuvvet, Kimya → Sıvı çözeltiler.</p><button class="btn ghost" id="genNote">${icon("spark")} Yapay zekâ ile özet çıkar</button></div>`}
       </article>`;
 
+    $("#genNote", body) && ($("#genNote", body).onclick = () => chat.send("Bu konuyu sınav için özetle", "ozet"));
     $(".note", body).addEventListener("mouseup", () => {
       const sel = String(window.getSelection()).trim();
       $(".ask-sel")?.remove();

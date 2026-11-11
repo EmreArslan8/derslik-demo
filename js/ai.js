@@ -9,7 +9,7 @@
 (function () {
   const config = {
     provider: localStorage.getItem("derslik.provider") || "mock",
-    proxyUrl: "", // örn. "/api/ai" — bkz. README
+    proxyUrl: localStorage.getItem("derslik.proxy") || "", // örn. "/api/ai" — bkz. README
   };
 
   const MODES = {
@@ -22,6 +22,7 @@
     return [
       "Sen Derslik adlı platformda Türkçe konuşan bir ders asistanısın.",
       MODES[mode] || MODES.acikla,
+      { samimi: "Samimi ve kısa konuş.", resmi: "Öğretmen gibi düzenli ve tanım odaklı anlat.", sokratik: "Mümkün olduğunca soru sorarak ilerle." }[(JSON.parse(localStorage.getItem("derslik.user") || "{}").tone)] || "",
       context ? `Öğrencinin çalıştığı konu: ${context}.` : "",
       "Emin olmadığın bilgiyi uydurma; gerekirse öğretmenine sormasını öner.",
     ].join(" ");
